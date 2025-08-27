@@ -1,0 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+h1 {
+  text-align: center;
+  color: white;
+  font-weight: 700;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.meta {
+  text-align: center;
+  color: rgba(255,255,255,0.8);
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+
+#questions {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  margin-bottom: 20px;
+}
+
+.q {
+  margin: 15px 0;
+  padding: 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.q:hover {
+  background-color: #f8f9ff;
+}
+
+.q label {
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  font-size: 15px;
+  line-height: 1.4;
+  user-select: none;
+}
+
+.q input[type="checkbox"] {
+  margin-right: 12px;
+  margin-top: 2px;
+  transform: scale(1.2);
+  accent-color: #667eea;
+}
+
+#submitBtn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+#submitBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+#submitBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+#result {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  margin: 20px 0;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  border-left: 5px solid #667eea;
+  display: none;
+}
+
+#result.show {
+  display: block;
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.status {
+  text-align: center;
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.status.success {
+  background: rgba(76, 175, 80, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.status.error {
+  background: rgba(244, 67, 54, 0.2);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 480px) {
+  body {
+    padding: 15px;
+  }
+  
+  #questions {
+    padding: 20px;
+  }
+  
+  .q label {
+    font-size: 14px;
+  }
+}
