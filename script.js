@@ -14,12 +14,11 @@ function generateUserFingerprint() {
     canvas.toDataURL()
   ].join('|');
   
-  // 해시 생성 (간단한 해시 함수)
   let hash = 0;
   for (let i = 0; i < fingerprint.length; i++) {
     const char = fingerprint.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // 32bit 정수로 변환
+    hash = hash & hash;
   }
   
   return Math.abs(hash).toString(36);
@@ -29,12 +28,7 @@ function generateUserFingerprint() {
 const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxgz7TOUoN_Bbww3SXcIn9zbvfcxrzFODZ4wyLfdedVppKY9JfttqoIH6fYKUFc9DYGqw/exec';
 const SECRET = 'dh-20250827-firstproject001';
 const params = new URLSearchParams(location.search);
-//const sessionId = params.get('s') || 'S1';
-// 수정 예시:
-const sessionId = params.get('s') || new Date().toISOString().slice(0,10); // 2025-08-27
-
-
-// 🔥 수정된 부분: 기존 generateId 대신 generateUserFingerprint 사용
+const sessionId = params.get('s') || new Date().toISOString().slice(0,10);
 const participantId = params.get('p') || ('USER-' + generateUserFingerprint());
 
 // ====== 문항 정의(12문항) ======
@@ -53,10 +47,15 @@ const ITEMS = [
   '기어이 나를 움직이게 만드는 후배 불쾌하다'
 ];
 
-// ====== 페이지 로드 후 실행 ======
-document.addEventListener('DOMContentLoaded', function() {
+// ====== 초기화 함수 ======
+function initializeApp() {
   // 렌더링
   const qWrap = document.getElementById('questions');
+  if (!qWrap) {
+    console.error('questions 엘리먼트를 찾을 수 없습니다.');
+    return;
+  }
+  
   qWrap.innerHTML = ITEMS.map((t,i)=>(
     `<div class="q">
       <label><input type="checkbox" data-q="Q${i+1}" /> ${i+1}. ${t}</label>
@@ -64,14 +63,25 @@ document.addEventListener('DOMContentLoaded', function() {
   )).join('');
 
   // 제출 버튼 이벤트
-  document.getElementById('submitBtn').addEventListener('click', handleSubmit);
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) {
+    submitBtn.addEventListener('click', handleSubmit);
+  }
   
-  // 🧪 디버깅: ID 확인 (개발자 도구에서 확인)
+  // 디버깅
   console.log('Session ID:', sessionId);
   console.log('Participant ID:', participantId);
-});
+}
 
-// ====== 점수→밴드 ======
+// ====== DOM 로드 처리 개선 ======
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+  // DOM이 이미 로드된 경우 즉시 실행
+  initializeApp();
+}
+
+// 나머지 함수들은 그대로...
 function scoreToBand(score){
   if (score <= 2) return '성숙한 어른';
   if (score <= 5) return '잠재적 꼰대';
@@ -79,7 +89,6 @@ function scoreToBand(score){
   return '자숙기간 필요';
 }
 
-// ====== 결과 색상 매핑 ======
 function getResultColor(result) {
   const colors = {
     '성숙한 어른': '#4CAF50',
@@ -90,12 +99,10 @@ function getResultColor(result) {
   return colors[result] || '#667eea';
 }
 
-// ====== 제출 처리 ======
 async function handleSubmit() {
   const checks = [...document.querySelectorAll('input[type="checkbox"][data-q]')];
   const checkedCount = checks.filter(c => c.checked).length;
   
-  // 입력 검증
   if (checkedCount === 0) {
     alert('최소 1개 이상의 문항을 선택해주세요.');
     return;
@@ -104,7 +111,6 @@ async function handleSubmit() {
   const submitBtn = document.getElementById('submitBtn');
   const originalText = submitBtn.textContent;
   
-  // 버튼 상태 변경
   submitBtn.disabled = true;
   submitBtn.textContent = '계산중...';
   
@@ -112,7 +118,6 @@ async function handleSubmit() {
     const answers = {};
     checks.forEach(c => answers[c.getAttribute('data-q')] = c.checked);
     
-    // 클라이언트 즉시 계산 & 표시
     const score = Object.values(answers).filter(Boolean).length;
     const result = scoreToBand(score);
     
@@ -127,7 +132,6 @@ async function handleSubmit() {
     `;
     resultDiv.className = 'show';
     
-    // 백엔드에 저장
     await saveToBackend({
       secret: SECRET,
       sessionId,
@@ -146,14 +150,12 @@ async function handleSubmit() {
   }
 }
 
-// ====== 백엔드 저장 함수 ======
 async function saveToBackend(payload) {
   const status = document.getElementById('saveStatus');
   
   console.log('저장 시도:', payload);
   
   try {
-    // 먼저 일반 fetch로 시도
     const res = await fetch(WEBAPP_URL, {
       method: 'POST',
       headers: {
@@ -179,7 +181,6 @@ async function saveToBackend(payload) {
     console.log('일반 fetch 실패, no-cors 모드로 전환:', e.message);
     
     try {
-      // no-cors 모드로 재시도
       await fetch(WEBAPP_URL, {
         method: 'POST',
         headers: {
@@ -189,8 +190,6 @@ async function saveToBackend(payload) {
         mode: 'no-cors'
       });
       
-      // no-cors 모드에서는 응답을 확인할 수 없으므로
-      // 2초 후 GET 요청으로 서버 상태 확인
       setTimeout(async () => {
         try {
           const testRes = await fetch(WEBAPP_URL);
